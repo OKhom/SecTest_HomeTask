@@ -11,9 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 
 import javax.mail.MessagingException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Controller
 public class MyController {
@@ -111,7 +109,19 @@ public class MyController {
         return "activate";
     }
 
+    @RequestMapping(value = "/role/update", method = RequestMethod.POST)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public String updateRole(@RequestParam(name = "ids[]", required = false) List<Long> ids,
+                             @RequestParam(name = "newRole") UserRole newRole,
+                             Model model) {
+        userService.updateUserById(ids, newRole);
+        model.addAttribute("users", userService.getAllUsers());
+
+        return "admin";
+    }
+
     @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String delete(@RequestParam(name = "toDelete[]", required = false) List<Long> ids,
                          Model model) {
         userService.deleteUsers(ids);
@@ -131,9 +141,16 @@ public class MyController {
     }
 
     @RequestMapping("/admin")
-    @PreAuthorize("hasRole('ROLE_ADMIN')") // !!!
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')") // !!!
     public String admin(Model model) {
+        User user = getCurrentUser();
         model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("role", user.getAuthorities());
+        List<UserRole> roles = new ArrayList<>();
+        for (UserRole ur : UserRole.values()) {
+            if (!(ur.toString().equals("ROLE_ADMIN") || ur.toString().equals("ROLE_PREACT"))) roles.add(ur);
+        }
+        model.addAttribute("roles", roles);
         return "admin";
     }
 
@@ -157,7 +174,7 @@ public class MyController {
         Collection<GrantedAuthority> roles = user.getAuthorities();
 
         for (GrantedAuthority auth : roles) {
-            if ("ROLE_ADMIN".equals(auth.getAuthority()))
+            if ("ROLE_ADMIN".equals(auth.getAuthority()) || "ROLE_MODERATOR".equals(auth.getAuthority()))
                 return true;
         }
 
