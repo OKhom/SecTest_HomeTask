@@ -32,9 +32,9 @@ public class AppConfig extends GlobalMethodSecurityConfiguration {
                 userService.addUser("user",
                         encoder.encode("password"),
                         UserRole.USER, "", "", null, null);
-//                emailService.sendEmail("okhom173@gmail.com", "from Spring project", "test message");
-//                emailService.sendHtmlEmail("okhom173@gmail.com", "HTML from Spring project",
-//                        "activated code=" + encoder.encode("password"));
+                userService.addUser("moderator",
+                        encoder.encode("11"),
+                        UserRole.MODERATOR, "", "", null, null);
             }
         };
     }
