@@ -69,4 +69,17 @@ public class UserService {
         user.setRole(UserRole.USER);
         userRepository.save(user);
     }
+
+    @Transactional
+    public void updateUserById(List<Long> ids, UserRole newRole) {
+        ids.forEach(id -> {
+            Optional<CustomUser> user = userRepository.findById(id);
+            user.ifPresent(u -> {
+                if ( ! AppConfig.ADMIN.equals(u.getLogin())) {
+                    u.setRole(newRole);
+                    userRepository.save(u);
+                }
+            });
+        });
+    }
 }
